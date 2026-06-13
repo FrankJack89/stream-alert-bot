@@ -76,11 +76,16 @@ async def check_kick(streamer):
     }
     async with aiohttp.ClientSession() as session:
         async with session.get(url, headers=headers) as r:
+
             if r.status != 200:
+
                 print(f"Kick {streamer}: status {r.status}")
+
                 return {"live": False}
             data = await r.json()
-            stream = data.get("livestream")  # <-- campo diverso!
+
+            stream = data.get("livestream")
+
             if stream and stream.get("is_live"):
                 cats = stream.get("categories", [])
                 game = cats[0].get("name", "Sconosciuto") if cats else "Sconosciuto"
@@ -135,10 +140,13 @@ async def check_streams():
                 live_status[key] = False
         except Exception as e:
             print("Errore Twitch " + streamer + ": " + str(e))
-    for streamer in KICK_STREAMERS:
+        for streamer in KICK_STREAMERS:
         key = "kick_" + streamer.lower()
         try:
             info = await check_kick(streamer)
+
+            print(f"Kick {streamer}: live={info['live']}")
+
             if info["live"] and not live_status.get(key):
                 live_status[key] = True
                 await send_alert(streamer, info, "Kick")

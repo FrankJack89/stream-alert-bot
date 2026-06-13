@@ -77,4 +77,4 @@ async def check_kick(streamer):
             if livestream:
                 return {
                     "live": True,
-                    "title": livestream.get("session_title", "Nessun
+                    "title": livestream.get("session_title", "Nessun titolo"),

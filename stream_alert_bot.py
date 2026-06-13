@@ -69,25 +69,27 @@ async def check_twitch(streamer):
             return {"live": False}
 
 async def check_kick(streamer):
-    url = "https://kick.com/api/v1/channels/" + streamer
+    url = "https://kick.com/api/v2/channels/" + streamer + "/livestream"
+    headers = {
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0"
+    }
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as r:
+        async with session.get(url, headers=headers) as r:
             if r.status != 200:
                 return {"live": False}
             data = await r.json()
-            livestream = data.get("livestream")
-            if livestream:
-                cats = livestream.get("categories", [])
+            stream = data.get("data")
+            if stream and stream.get("is_live"):
+                cats = stream.get("categories", [])
                 game = cats[0].get("name", "Sconosciuto") if cats else "Sconosciuto"
-                thumb = livestream.get("thumbnail", {})
-                thumb_url = thumb.get("url", "") if thumb else ""
                 return {
                     "live": True,
-                    "title": livestream.get("session_title", "Nessun titolo"),
+                    "title": stream.get("session_title", "Nessun titolo"),
                     "game": game,
-                    "viewers": livestream.get("viewer_count", 0),
+                    "viewers": stream.get("viewer_count", 0),
                     "url": "https://kick.com/" + streamer,
-                    "thumbnail": thumb_url,
+                    "thumbnail": stream.get("thumbnail", {}).get("url", "") if stream.get("thumbnail") else "",
                 }
             return {"live": False}
 
